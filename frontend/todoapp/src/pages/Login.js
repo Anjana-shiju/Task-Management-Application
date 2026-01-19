@@ -1,67 +1,91 @@
-import { useState } from "react";
-import API from "../api";
 import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { toast } from "react-toastify";
 import MyNavbar from "../components/Navbar";
+import API from "../api";
 
 export default function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
-  const login = async () => {
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleLogin = async (e) => {
+    e.preventDefault(); // ✅ prevent page reload
+
+    if (!formData.email.trim() || !formData.password.trim()) {
+      return toast.warning("Enter email and password");
+    }
+
     try {
-      const res = await API.post("/auth/login", { email, password });
+      const res = await API.post("/auth/login", formData);
+
+      // ✅ Save both token & user
       localStorage.setItem("token", res.data.token);
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+
       toast.success("Login successful");
+
+      // ✅ Redirect to dashboard
       navigate("/dashboard");
-    } catch {
-      toast.error("Invalid email or password");
+    } catch (error) {
+      console.error("Login error:", error);
+      toast.error(error.response?.data?.message || "Login failed");
     }
   };
 
   return (
     <>
-      {/* Navbar */}
       <MyNavbar />
-
-      {/* Login Card */}
       <div
         className="d-flex justify-content-center align-items-center bg-light"
         style={{ minHeight: "calc(100vh - 70px)" }}
       >
         <div className="card shadow-lg border-0" style={{ width: "380px" }}>
           <div className="card-body p-4">
-            <h3 className="text-center fw-bold mb-2">Welcome Back</h3>
+            <h3 className="text-center fw-bold mb-3">Login</h3>
             <p className="text-center text-muted mb-4">
-              Login to access your tasks
+              Sign in to manage your tasks
             </p>
 
-            <input
-              type="email"
-              className="form-control mb-3"
-              placeholder="Email Address"
-              onChange={(e) => setEmail(e.target.value)}
-            />
+            {/* ✅ Use form so Enter works */}
+            <form onSubmit={handleLogin}>
+              <input
+                name="email"
+                type="email"
+                className="form-control mb-3"
+                placeholder="Email Address"
+                value={formData.email}
+                onChange={handleChange}
+              />
 
-            <input
-              type="password"
-              className="form-control mb-3"
-              placeholder="Password"
-              onChange={(e) => setPassword(e.target.value)}
-            />
+              <input
+                type="password"
+                name="password"
+                className="form-control mb-3"
+                placeholder="Password"
+                value={formData.password}
+                onChange={handleChange}
+              />
 
-            <button
-              onClick={login}
-              className="btn btn-primary w-100 fw-semibold"
-            >
-              Login
-            </button>
+              <button
+                type="submit"
+                className="btn btn-primary w-100 fw-semibold"
+              >
+                Login
+              </button>
+            </form>
 
             <p className="text-center mt-3 mb-0">
-              New user?{" "}
+              Don’t have an account?{" "}
               <Link to="/register" className="fw-semibold">
-                Create account
+                Register
               </Link>
             </p>
           </div>

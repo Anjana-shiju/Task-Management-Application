@@ -1,122 +1,71 @@
-const router = require("express").Router();
-const auth = require("../middleware/authMiddleware");
+const express = require("express");
+const router = express.Router();
 const Task = require("../models/Task");
-const TaskHistory = require("../models/TasHistory");
-
-// helper
-const todayString = () => new Date().toISOString().split("T")[0];
+const auth = require("../middleware/authMiddleware");
 
 // ➕ ADD TASK
-router.post("/", auth, async (req, res) => {
+router.post("/add", auth, async (req, res) => {
   try {
+    const { title, description, taskType } = req.body;
+    
+    // Task മോഡലിലെ .create() ഇപ്പോൾ വർക്ക് ആകും
     const task = await Task.create({
-      title: req.body.title,
-      description: req.body.description,
-      taskType: req.body.taskType, // today | daily | weekly
-      user: req.userId,
+      title,
+      description,
+      taskType: taskType.toLowerCase(),
+      user: req.userId, // auth middleware-ൽ നിന്ന് കിട്ടുന്നത്
     });
 
-    res.json(task);
-  } catch {
-    res.status(500).json("Task creation failed");
+    res.status(201).json(task);
+  } catch (err) {
+    console.error("Task Add Error:", err);
+    res.status(500).json({ message: "Task creation failed", error: err.message });
+  }
+});
+
+// 📥 GET TASKS BY TYPE
+router.get("/:type", auth, async (req, res) => {
+  try {
+    const { type } = req.params;
+    const userId = req.userId;
+    
+    let query = { user: userId, taskType: type };
+
+    // Today ആണെങ്കിൽ ഇന്നത്തെ ടാസ്ക്കുകൾ മാത്രം
+    if (type === "today") {
+      const startOfToday = new Date();
+      startOfToday.setHours(0, 0, 0, 0);
+      query.createdAt = { $gte: startOfToday };
+    }
+
+    const tasks = await Task.find(query).sort({ createdAt: -1 });
+    res.json(tasks);
+  } catch (err) {
+    res.status(500).json({ message: "Fetch failed" });
   }
 });
 
 // ✅ MARK AS DONE
 router.put("/done/:id", auth, async (req, res) => {
   try {
-    const task = await Task.findOne({
-      _id: req.params.id,
-      user: req.userId,
-    });
-
-    if (!task) return res.status(404).json("Task not found");
-
-    const today = todayString();
-
-    // prevent duplicate completion for same day
-    const alreadyDone = await TaskHistory.findOne({
-      taskId: task._id,
-      user: req.userId,
-      date: today,
-    });
-
-    if (!alreadyDone) {
-      await TaskHistory.create({
-        taskId: task._id,
-        user: req.userId,
-        date: today,
-      });
-    }
-
-    task.lastCompletedAt = new Date();
-    await task.save();
-
-    res.json({ message: "Task marked as done" });
-  } catch {
-    res.status(500).json("Update failed");
-  }
-});
-
-// 📄 GET TASKS BY TYPE
-router.get("/:type", auth, async (req, res) => {
-  try {
-    const type = req.params.type;
-    const userId = req.userId;
-    const today = todayString();
-
-    // TODAY TASKS
-    if (type === "today") {
-      const tasks = await Task.find({
-        user: userId,
-        taskType: "today",
-        createdAt: {
-          $gte: new Date(today),
-        },
-      }).sort({ createdAt: -1 });
-
-      return res.json(tasks);
-    }
-
-    // DAILY / WEEKLY
-    const tasks = await Task.find({
-      user: userId,
-      taskType: type,
-    });
-
-    const completedToday = await TaskHistory.find({
-      user: userId,
-      date: today,
-    }).select("taskId");
-
-    const completedIds = completedToday.map((h) => h.taskId.toString());
-
-    const filtered = tasks.filter(
-      (t) => !completedIds.includes(t._id.toString())
+    const task = await Task.findOneAndUpdate(
+      { _id: req.params.id, user: req.userId },
+      { status: "done", lastCompletedAt: new Date() },
+      { new: true }
     );
-
-    res.json(filtered);
-  } catch {
-    res.status(500).json("Fetch failed");
+    res.json(task);
+  } catch (err) {
+    res.status(500).json({ message: "Update failed" });
   }
 });
 
-// ❌ DELETE TASK (permanent)
+// 🗑 DELETE
 router.delete("/:id", auth, async (req, res) => {
   try {
-    await Task.findOneAndDelete({
-      _id: req.params.id,
-      user: req.userId,
-    });
-
-    await TaskHistory.deleteMany({
-      taskId: req.params.id,
-      user: req.userId,
-    });
-
-    res.json({ message: "Deleted" });
-  } catch {
-    res.status(500).json("Delete failed");
+    await Task.findOneAndDelete({ _id: req.params.id, user: req.userId });
+    res.json({ message: "Deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ message: "Delete failed" });
   }
 });
 

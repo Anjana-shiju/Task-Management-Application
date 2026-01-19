@@ -1,8 +1,8 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import axios from "axios";
 import { toast } from "react-toastify";
-import MyNavbar from "../components/Navbar"
+import MyNavbar from "../components/Navbar";
+import API from "../api";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -17,27 +17,32 @@ export default function Register() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleRegister = async () => {
+  const handleRegister = async (e) => {
+    e.preventDefault(); // ✅ prevent page reload
+
+    if (!formData.name.trim() || !formData.email.trim() || !formData.password.trim()) {
+      return toast.warning("Fill all fields");
+    }
+
     try {
-      await axios.post(
-        "http://localhost:5000/api/auth/register",
-        formData
-      );
+      const res = await API.post("/auth/register", formData);
+
+      if (res.data?.token && res.data?.user) {
+        localStorage.setItem("token", res.data.token);
+        localStorage.setItem("user", JSON.stringify(res.data.user));
+      }
+
       toast.success("Registration successful");
-      navigate("/login");
+      navigate("/dashboard");
     } catch (error) {
-      toast.error(
-        error.response?.data?.message || "Registration failed"
-      );
+      console.error("Register error:", error);
+      toast.error(error.response?.data?.message || "Registration failed");
     }
   };
 
   return (
     <>
-      
       <MyNavbar />
-
-      
       <div
         className="d-flex justify-content-center align-items-center bg-light"
         style={{ minHeight: "calc(100vh - 70px)" }}
@@ -49,35 +54,41 @@ export default function Register() {
               Sign up to manage your tasks
             </p>
 
-            <input
-              name="name"
-              className="form-control mb-3"
-              placeholder="Full Name"
-              onChange={handleChange}
-            />
+            {/* ✅ Use form so Enter works */}
+            <form onSubmit={handleRegister}>
+              <input
+                name="name"
+                className="form-control mb-3"
+                placeholder="Full Name"
+                value={formData.name}
+                onChange={handleChange}
+              />
 
-            <input
-              name="email"
-              type="email"
-              className="form-control mb-3"
-              placeholder="Email Address"
-              onChange={handleChange}
-            />
+              <input
+                name="email"
+                type="email"
+                className="form-control mb-3"
+                placeholder="Email Address"
+                value={formData.email}
+                onChange={handleChange}
+              />
 
-            <input
-              type="password"
-              name="password"
-              className="form-control mb-3"
-              placeholder="Password"
-              onChange={handleChange}
-            />
+              <input
+                type="password"
+                name="password"
+                className="form-control mb-3"
+                placeholder="Password"
+                value={formData.password}
+                onChange={handleChange}
+              />
 
-            <button
-              onClick={handleRegister}
-              className="btn btn-primary w-100 fw-semibold"
-            >
-              Register
-            </button>
+              <button
+                type="submit"
+                className="btn btn-primary w-100 fw-semibold"
+              >
+                Register
+              </button>
+            </form>
 
             <p className="text-center mt-3 mb-0">
               Already have an account?{" "}

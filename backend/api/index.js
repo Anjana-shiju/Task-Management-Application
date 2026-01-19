@@ -1,13 +1,13 @@
+// api/index.js
 const express = require("express");
-const cors = require("cors");
+const router = express.Router();
 
-const app = express();
+const authRoutes = require("../routes/auth.routes");
+const taskRoutes = require("../routes/task.routes");
 
-app.use(cors());
-app.use(express.json());
+router.use("/auth", authRoutes);
 
-app.get("/", (req, res) => {
-  res.send("Backend working 🚀");
-});
+// 🔥 CHANGE HERE
+router.use("/tasks", taskRoutes);
 
-module.exports = app;
+module.exports = router;
