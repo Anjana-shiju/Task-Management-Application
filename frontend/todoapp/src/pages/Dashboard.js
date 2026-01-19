@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import API from "../api";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -17,7 +17,7 @@ export default function Dashboard() {
   const [search, setSearch] = useState("");
   const [history, setHistory] = useState([]);
 
-  const loadTasks = async () => {
+  const loadTasks = useCallback(async () => {
     try {
       const res = await API.get(`/tasks/${taskType}`);
       setTasks(res.data);
@@ -25,21 +25,21 @@ export default function Dashboard() {
     } catch {
       toast.error("Task load failed");
     }
-  };
+  }, [taskType]);
 
-  const loadHistory = async () => {
+  const loadHistory = useCallback(async () => {
     try {
       const res = await API.get("/tasks/history");
       setHistory(res.data);
     } catch {
       toast.error("History load failed");
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadTasks();
     loadHistory();
-  }, [taskType]);
+  }, [loadTasks, loadHistory]);
 
   const addTask = async () => {
     if (!title) return toast.warning("Enter title");
@@ -136,7 +136,6 @@ export default function Dashboard() {
           />
           <button
             className="btn btn-outline-primary w-100 fw-semibold"
-            style={{ fontSize: "15px", padding: "8px 12px", borderRadius: "8px" }}
             onClick={addTask}
           >
             <i className="bi bi-check2-circle me-2"></i> Add Task
