@@ -14,7 +14,7 @@ const historySchema = new mongoose.Schema(
       required: true,
     },
 
-    // completion date (YYYY-MM-DD)
+    
     date: {
       type: String,
       required: true,

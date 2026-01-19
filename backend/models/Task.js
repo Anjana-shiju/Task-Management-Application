@@ -18,7 +18,7 @@ const taskSchema = new mongoose.Schema(
       required: true,
     },
 
-    // 🔑 For daily / weekly logic
+
     lastCompletedAt: {
       type: Date,
       default: null,

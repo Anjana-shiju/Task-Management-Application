@@ -34,10 +34,10 @@ export default function Register() {
 
   return (
     <>
-      {/* ✅ Navbar same as login */}
+      
       <MyNavbar />
 
-      {/* ✅ Register card */}
+      
       <div
         className="d-flex justify-content-center align-items-center bg-light"
         style={{ minHeight: "calc(100vh - 70px)" }}
