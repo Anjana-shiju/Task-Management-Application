@@ -15,7 +15,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:3000",
-      "https://frontttask-management-application-7xgl-bzabax0qe.vercel.app/"
+      "https://fronttask-management-application-7xgl-bzabax0qe.vercel.app"
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     credentials: true
