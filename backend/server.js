@@ -4,27 +4,26 @@ const mongoose = require("mongoose");
 
 const app = express();
 
-// ✅ MongoDB connect (FIXED)
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB connected"))
-  .catch(err => console.error("DB error:", err));
+  .catch(err => console.error(err));
 
-// ✅ CORS
-app.use(
-  cors({
-    origin: [
-      "http://localhost:3000",
-      "https://fronttask-management-application-7xgl-bzabax0qe.vercel.app"
-    ],
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    credentials: true
-  })
-);
+const corsOptions = {
+  origin: "https://frontttask-management-application-7xgl-bzabax0qe.vercel.app",
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  credentials: true
+};
+
+// ✅ CORS middleware
+app.use(cors(corsOptions));
+
+// ✅ VERY IMPORTANT (preflight fix)
+app.options("*", cors(corsOptions));
 
 app.use(express.json());
 
-// ✅ Routes
+// Routes
 app.use("/api/auth", require("./routes/auth.routes"));
 app.use("/api/tasks", require("./routes/task.routes"));
 
@@ -32,11 +31,5 @@ app.get("/", (req, res) => {
   res.send("Backend is running ✅");
 });
 
-// ❌ DO NOT listen on Vercel
-if (process.env.NODE_ENV !== "production") {
-  const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => console.log(`Server running on ${PORT}`));
-}
-
-// ✅ REQUIRED for Vercel
+// ❌ DO NOT listen in Vercel
 module.exports = app;
