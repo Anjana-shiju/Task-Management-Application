@@ -26,14 +26,17 @@ export default function Login() {
     try {
       const res = await API.post("/auth/login", formData);
 
-      // ✅ Save both token & user
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("user", JSON.stringify(res.data.user));
+      if (res.data?.token && res.data?.user) {
+        // ✅ Save both token & user
+        localStorage.setItem("token", res.data.token);
+        localStorage.setItem("user", JSON.stringify(res.data.user));
 
-      toast.success("Login successful");
-
-      // ✅ Redirect to dashboard
-      navigate("/dashboard");
+        toast.success("Login successful");
+        // ✅ Redirect to dashboard
+        navigate("/dashboard");
+      } else {
+        toast.error("Invalid response from server");
+      }
     } catch (error) {
       console.error("Login error:", error);
       toast.error(error.response?.data?.message || "Login failed");

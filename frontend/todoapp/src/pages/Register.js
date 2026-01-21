@@ -18,7 +18,7 @@ export default function Register() {
   };
 
   const handleRegister = async (e) => {
-    e.preventDefault(); // ✅ prevent page reload
+    e.preventDefault();
 
     if (!formData.name.trim() || !formData.email.trim() || !formData.password.trim()) {
       return toast.warning("Fill all fields");
@@ -54,7 +54,6 @@ export default function Register() {
               Sign up to manage your tasks
             </p>
 
-            {/* ✅ Use form so Enter works */}
             <form onSubmit={handleRegister}>
               <input
                 name="name"

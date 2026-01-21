@@ -15,8 +15,8 @@ mongoose
 app.use(
   cors({
     origin: [
-      "http://localhost:3000",
-      "https://task-management-application-23b7.vercel.app"
+      "http://localhost:5000",
+      "https://frontttask-management-application-7.vercel.app/"
     ],
     credentials: true
   })

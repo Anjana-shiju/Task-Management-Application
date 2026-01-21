@@ -26,7 +26,7 @@ export default function Dashboard() {
       } else {
         setUser(JSON.parse(raw));
       }
-    } catch (err) {
+    } catch {
       setUser(null);
     }
   }, []);
@@ -35,28 +35,26 @@ export default function Dashboard() {
     if (user === null) navigate("/login");
   }, [user, navigate]);
 
-  // 📥 Load tasks (Today/Daily/Weekly tabs select cheythaal refresh aakum)
+  // 📥 Load tasks
   const loadTasks = useCallback(async () => {
     if (!user?._id) return;
     try {
-      // Backend: router.get("/:type", auth, ...)
       const res = await API.get(`/tasks/${taskType}`);
       setTasks(res.data);
     } catch (err) {
-      console.error(err);
+      console.error("Load tasks error:", err);
       toast.error(`${taskType} tasks load failed`);
     }
   }, [user, taskType]);
 
-  // 📅 Load history (Calendar-il dots kaanikkan)
+  // 📅 Load history
   const loadHistory = useCallback(async () => {
     if (!user?._id) return;
     try {
-      // Backend-il nammal add cheytha puthiya route: /tasks/history/all
       const res = await API.get("/tasks/history/all");
       setHistory(res.data);
     } catch (err) {
-      console.error(err);
+      console.error("Load history error:", err);
     }
   }, [user]);
 
@@ -72,59 +70,42 @@ export default function Dashboard() {
     if (!title.trim()) return toast.warning("Enter title");
 
     try {
-      // Backend: router.post("/add", auth, ...)
-      await API.post("/tasks/add", {
-        title,
-        description,
-        taskType, 
-      });
-
+      await API.post("/tasks/add", { title, description, taskType });
       setTitle("");
       setDescription("");
       toast.success(`${taskType} task added!`);
       loadTasks();
     } catch (err) {
-      console.error(err);
+      console.error("Add task error:", err);
       toast.error("Add failed");
     }
   };
 
   // ✅ Mark as done
-const markDone = async (id) => {
-  try {
-    // 1. Backend-ilekk update request ayakkunnu
-    await API.put(`/tasks/done/${id}`);
-    
-    // 2. TaskType anusarichu ulla message set cheyyunnu
-    const message = taskType === "today" 
-      ? "Awesome! Task finished. 🚀" 
-      : "Great job! Keep going. 🔥";
-      
-    // 3. Toast notification kaanikkunnu
-    toast.success(message, {
-      theme: "colored",
-      position: "top-right"
-    });
-
-    // 4. Data refresh cheyyunnu
-    loadTasks();
-    loadHistory();
-  } catch (err) {
-    console.error(err);
-    toast.error("Status update failed");
-  }
-};
+  const markDone = async (id) => {
+    try {
+      await API.put(`/tasks/done/${id}`);
+      const message = taskType === "today" 
+        ? "Awesome! Task finished. 🚀" 
+        : "Great job! Keep going. 🔥";
+      toast.success(message, { theme: "colored", position: "top-right" });
+      loadTasks();
+      loadHistory();
+    } catch (err) {
+      console.error("Mark done error:", err);
+      toast.error("Status update failed");
+    }
+  };
 
   // 🗑 Delete task
   const deleteTask = async (id) => {
     try {
-      // Backend: router.delete("/:id", auth, ...)
       await API.delete(`/tasks/${id}`);
       toast.success("Task deleted");
       loadTasks();
       loadHistory();
     } catch (err) {
-      console.error(err);
+      console.error("Delete task error:", err);
       toast.error("Delete failed");
     }
   };
@@ -138,10 +119,9 @@ const markDone = async (id) => {
     t.title.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Calendar logic
+  // 📆 Calendar logic
   const tileClassName = ({ date }) => {
     const dateStr = date.toISOString().split("T")[0];
-    // TaskHistory model-il 'date' field check cheyyunnu
     const completed = history.some((h) => h.date === dateStr);
     return completed ? "bg-success text-white rounded-circle" : null;
   };
@@ -239,14 +219,18 @@ const markDone = async (id) => {
 
         {/* 📆 Calendar Section */}
         <div className="card shadow-sm p-4 mt-5 border-0">
-          <h5 className="fw-bold mb-4 text-center"><i className="bi bi-calendar-check me-2"></i>Consistency Tracker</h5>
+          <h5 className="fw-bold mb-4 text-center">
+            <i className="bi bi-calendar-check me-2"></i>Consistency Tracker
+          </h5>
           <div className="d-flex justify-content-center">
             <Calendar 
               tileClassName={tileClassName} 
               className="border-0 shadow-sm rounded p-2"
             />
           </div>
-          <p className="small text-muted text-center mt-3">Green dots show days you completed at least one task.</p>
+          <p className="small text-muted text-center mt-3">
+            Green dots show days you completed at least one task.
+          </p>
         </div>
       </div>
     </div>
