@@ -6,14 +6,21 @@ require("dotenv").config();
 const app = express();
 
 // ✅ MongoDB connect
-mongoose.connect(process.env.MONGO_URL)
+mongoose
+  .connect(process.env.MONGO_URL)
   .then(() => console.log("MongoDB connected"))
-  .catch(err => console.error("DB error:", err));
+  .catch((err) => console.error("DB error:", err));
 
-// ✅ CORS (frontend vercel url allow)
-app.use(cors({
-  origin: "https://task-management-application-23b7.vercel.app"
-}));
+// ✅ CORS (local + production frontend allow)
+app.use(
+  cors({
+    origin: [
+      "http://localhost:3000",
+      "https://task-management-application-23b7.vercel.app"
+    ],
+    credentials: true
+  })
+);
 
 app.use(express.json());
 
@@ -21,6 +28,4 @@ app.use(express.json());
 app.use("/api", require("./api"));
 
 // ❌ DO NOT use app.listen() in Vercel
-// app.listen(PORT, ...)
-
-module.exports = app; // ⭐ MUST for Vercel
+module.exports = app;
