@@ -10,17 +10,29 @@ mongoose.connect(process.env.MONGO_URL)
   .then(() => console.log("MongoDB connected"))
   .catch(err => console.error("DB error:", err));
 
-// ✅ CORS (frontend vercel url allow)
+// ✅ CORS (allow local + vercel frontend)
 app.use(cors({
-  origin:  "https://frontttask-management-application-7.vercel.app/"
+  origin: [
+    "http://localhost:3000", // local dev
+    "https://frontttask-management-application-7.vercel.app" // Vercel frontend
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  credentials: true
 }));
+app.options("*", cors()); // handle preflight requests
 
+// ✅ Middleware
 app.use(express.json());
 
 // ✅ API routes
-app.use("/api", require("./api"));
+app.use("/api/auth", require("./routes/auth.routes"));
+app.use("/api/tasks", require("./routes/task.routes"));
 
-// ❌ DO NOT use app.listen() in Vercel
-// app.listen(PORT, ...)
+// ✅ Local development only
+if (process.env.NODE_ENV !== "production") {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+}
 
-module.exports = app; // ⭐ MUST for Vercel
+// ✅ Export for Vercel
+module.exports = app;
