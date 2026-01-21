@@ -29,6 +29,9 @@ app.use(express.json());
 app.use("/api/auth", require("./routes/auth.routes"));
 app.use("/api/tasks", require("./routes/task.routes"));
 
+
+ app.get("/", (req, res) => { res.send("Backend is running ✅"); });
+
 // ✅ Local development only
 if (process.env.NODE_ENV !== "production") {
   const PORT = process.env.PORT || 5000;
