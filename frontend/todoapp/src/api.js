@@ -1,8 +1,9 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: process.env.REACT_APP_API_BASE_URL || "http://localhost:5000/api",
-  withCredentials: true, // only if backend uses cookies
+  baseURL: "https://backtask-management-application-7653-q74imhm27.vercel.app/api",
+
+  withCredentials: true,
 });
 
 // 🔐 Attach token automatically
