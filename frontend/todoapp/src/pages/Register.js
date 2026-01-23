@@ -1,7 +1,6 @@
-import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import MyNavbar from "../components/Navbar";
 import API from "../api";
 
 export default function Register() {
@@ -14,90 +13,122 @@ export default function Register() {
   });
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
   };
 
   const handleRegister = async (e) => {
     e.preventDefault();
 
-    if (!formData.name.trim() || !formData.email.trim() || !formData.password.trim()) {
-      return toast.warning("Fill all fields");
+    if (
+      !formData.name.trim() ||
+      !formData.email.trim() ||
+      !formData.password.trim()
+    ) {
+      return toast.warning("All fields are required");
     }
 
     try {
       const res = await API.post("/auth/register", formData);
 
-      if (res.data?.token && res.data?.user) {
-        localStorage.setItem("token", res.data.token);
-        localStorage.setItem("user", JSON.stringify(res.data.user));
-      }
+      localStorage.setItem("token", res.data.token);
 
-      toast.success("Registration successful");
-      navigate("/dashboard");
+      toast.success("Registration successful 🎉");
+      navigate("/login");
     } catch (error) {
-      console.error("Register error:", error);
-      toast.error(error.response?.data?.message || "Registration failed");
+      toast.error(
+        error.response?.data?.message ||
+          "Registration failed"
+      );
     }
   };
 
   return (
-    <>
-      <MyNavbar />
+    <div
+      className="d-flex justify-content-center align-items-center"
+      style={{
+        minHeight: "100vh",
+        background:
+          "linear-gradient(180deg, #43a4ee 0%, #ffffff 50%, #f3f7ff 100%)",
+      }}
+    >
+      {/* Glass Card */}
       <div
-        className="d-flex justify-content-center align-items-center bg-light"
-        style={{ minHeight: "calc(100vh - 70px)" }}
+        className="card border-0"
+        style={{
+          width: "380px",
+          background: "rgba(255,255,255,0.85)",
+          backdropFilter: "blur(12px)",
+          borderRadius: "16px",
+          boxShadow: "0 20px 40px rgba(14, 148, 175, 0.12)",
+        }}
       >
-        <div className="card shadow-lg border-0" style={{ width: "380px" }}>
-          <div className="card-body p-4">
-            <h3 className="text-center fw-bold mb-3">Create Account</h3>
-            <p className="text-center text-muted mb-4">
-              Sign up to manage your tasks
-            </p>
+        <div className="card-body p-4">
+          <h3 className="text-center fw-bold mb-2">
+            Create account
+          </h3>
+          <p className="text-center text-muted mb-4">
+            Get started in seconds 
+          </p>
 
-            <form onSubmit={handleRegister}>
-              <input
-                name="name"
-                className="form-control mb-3"
-                placeholder="Full Name"
-                value={formData.name}
-                onChange={handleChange}
-              />
+          <form onSubmit={handleRegister}>
+            <input
+              type="text"
+              name="name"
+              placeholder="Full name"
+              className="form-control mb-3"
+              value={formData.name}
+              onChange={handleChange}
+              style={{ borderRadius: "10px" }}
+            />
 
-              <input
-                name="email"
-                type="email"
-                className="form-control mb-3"
-                placeholder="Email Address"
-                value={formData.email}
-                onChange={handleChange}
-              />
+            <input
+              type="email"
+              name="email"
+              placeholder="Email address"
+              className="form-control mb-3"
+              value={formData.email}
+              onChange={handleChange}
+              style={{ borderRadius: "10px" }}
+            />
 
-              <input
-                type="password"
-                name="password"
-                className="form-control mb-3"
-                placeholder="Password"
-                value={formData.password}
-                onChange={handleChange}
-              />
+            <input
+              type="password"
+              name="password"
+              placeholder="Password"
+              className="form-control mb-3"
+              value={formData.password}
+              onChange={handleChange}
+              style={{ borderRadius: "10px" }}
+            />
 
-              <button
-                type="submit"
-                className="btn btn-primary w-100 fw-semibold"
-              >
-                Register
-              </button>
-            </form>
+            <button
+              type="submit"
+              className="btn w-100 fw-semibold"
+              style={{
+                backgroundColor: "#111827",
+                color: "#fff",
+                padding: "10px",
+                borderRadius: "10px",
+              }}
+            >
+              Register
+            </button>
+          </form>
 
-            <p className="text-center mt-3 mb-0">
-              Already have an account?{" "}
-              <Link to="/login" className="fw-semibold">
-                Login
-              </Link>
-            </p>
-          </div>
+          <p className="text-center mt-3 mb-0">
+            Already have an account?{" "}
+            <Link
+              to="/login"
+              className="fw-semibold text-decoration-none"
+            >
+              Login
+            </Link>
+          </p>
         </div>
       </div>
-    </>
+    </div>
   );
 }

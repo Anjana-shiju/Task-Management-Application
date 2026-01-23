@@ -1,19 +1,21 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "https://backtask-management-application-7653-q74imhm27.vercel.app/api",
-
+  baseURL: process.env.REACT_APP_API_BASE_URL,
   withCredentials: true,
 });
 
 // 🔐 Attach token automatically
-API.interceptors.request.use((req) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    req.headers.Authorization = `Bearer ${token}`;
-  }
-  return req;
-});
+API.interceptors.request.use(
+  (req) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      req.headers.Authorization = `Bearer ${token}`;
+    }
+    return req;
+  },
+  (error) => Promise.reject(error)
+);
 
 // ⚠️ Handle unauthorized globally
 API.interceptors.response.use(

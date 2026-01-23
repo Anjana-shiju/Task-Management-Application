@@ -1,9 +1,11 @@
-// api/auth/login.js
+const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../../models/User");
 
-module.exports = async (req, res) => {
+const router = express.Router();
+
+router.post("/", async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -13,24 +15,21 @@ module.exports = async (req, res) => {
 
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(400).json({ message: "Invalid credentials" });
+      return res.status(400).json({ message: "User not found" });
     }
 
     const match = await bcrypt.compare(password, user.password);
     if (!match) {
-      return res.status(400).json({ message: "Invalid credentials" });
+      return res.status(400).json({ message: "Wrong password" });
     }
 
-    // ✅ TOKEN ADD CHEYTHU
     const token = jwt.sign(
       { id: user._id },
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
 
-    // ✅ FRONTEND EXPECT CHEYYUNNA RESPONSE
-    return res.status(200).json({
-      message: "Login successful",
+    res.json({
       token,
       user: {
         _id: user._id,
@@ -39,7 +38,8 @@ module.exports = async (req, res) => {
       },
     });
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: err.message });
   }
-};
+});
+
+module.exports = router;

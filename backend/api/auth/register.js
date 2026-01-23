@@ -1,9 +1,11 @@
-// api/auth/register.js
+const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../../models/User");
 
-module.exports = async (req, res) => {
+const router = express.Router();
+
+router.post("/", async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
@@ -11,25 +13,23 @@ module.exports = async (req, res) => {
       return res.status(400).json({ message: "All fields required" });
     }
 
-    const existing = await User.findOne({ email });
-    if (existing) {
-      return res.status(400).json({ message: "Email already registered" });
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: "Email already exists" });
     }
 
     const hashed = await bcrypt.hash(password, 10);
+
     const user = new User({ name, email, password: hashed });
     await user.save();
 
-    // ✅ TOKEN GENERATE
     const token = jwt.sign(
       { id: user._id },
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
 
-    // ✅ SAME RESPONSE STRUCTURE AS LOGIN
-    return res.status(201).json({
-      message: "User registered",
+    res.status(201).json({
       token,
       user: {
         _id: user._id,
@@ -38,7 +38,8 @@ module.exports = async (req, res) => {
       },
     });
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: err.message });
   }
-};
+});
+
+module.exports = router;
