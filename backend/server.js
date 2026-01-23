@@ -41,7 +41,6 @@
 
 
 require("dotenv").config();
-
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
@@ -49,24 +48,30 @@ const mongoose = require("mongoose");
 const app = express();
 
 // 1. MongoDB Connection
-// Render-ലെ Environment Variables-ൽ MONGO_URL സെറ്റ് ചെയ്യാൻ മറക്കരുത്
 mongoose
   .connect(process.env.MONGO_URL)
   .then(() => console.log("MongoDB connected successfully ✅"))
   .catch((err) => console.error("MongoDB connection error: ❌", err));
 
+// 2. CORS Configuration (ഇതാണ് മാറ്റം വരുത്തേണ്ടത്)
+app.use(
+  cors({
+    // നിന്റെ കൺസോളിൽ കണ്ട വെർസൽ ലിങ്ക് ഇവിടെ നൽകുക
+    origin: "https://newwtask-management-application.vercel.app", 
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"]
+  })
+);
 
-app.use(cors());
 app.use(express.json());
 
-
+// 3. Routes
 app.use("/api", require("./api/index"));
-
 
 app.get("/", (req, res) => {
   res.send("Backend is running live on Render! 🚀");
 });
-
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
