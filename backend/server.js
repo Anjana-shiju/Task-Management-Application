@@ -56,8 +56,10 @@ mongoose
 // 2. CORS Configuration (ഇതാണ് മാറ്റം വരുത്തേണ്ടത്)
 app.use(
   cors({
-    // നിന്റെ കൺസോളിൽ കണ്ട വെർസൽ ലിങ്ക് ഇവിടെ നൽകുക
-    origin: "https://newwtask-management-application.vercel.app", 
+    origin: function (origin, callback) {
+      // ഏത് ലിങ്കിൽ നിന്ന് റിക്വസ്റ്റ് വന്നാലും അത് അനുവദിക്കും
+      callback(null, true);
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"]
